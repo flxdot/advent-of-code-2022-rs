@@ -3,56 +3,41 @@ use std::io;
 use std::io::BufRead;
 
 fn main() {
-    println!("Answer: {}", solve_puzzle("input.txt"));
+    println!("Answer: {}", solve_puzzle("input.txt").unwrap());
 }
 
 
 #[test]
 fn test_solve_puzzle() {
-    assert_eq!(solve_puzzle("example.txt"), 2);
+    assert_eq!(solve_puzzle("example.txt").unwrap(), 2);
 }
 
 
-fn solve_puzzle(file_path: &str) -> i32 {
-    let file = match fs::File::open(file_path) {
-        Ok(file) => file,
-        _ => panic!("File {} could not be opened.", file_path)
-    };
+fn solve_puzzle(file_path: &str) -> Result<i32, std::io::Error> {
+    let file = fs::File::open(file_path)?;
     let reader = io::BufReader::new(file);
 
     let mut fully_contained_pairs = 0;
 
-    for line in reader.lines().map(|line| line.unwrap()) {
+    for line in reader.lines() {
+        let line = line?;
 
-        let mut assignments = line.split(",");
-        let assignment_a = assignments.next().unwrap();
-        let assignment_b = assignments.next().unwrap();
+        let (assignment_a, assignment_b) = line.split_once(",").unwrap();
+        let range_a = to_range(assignment_a);
+        let range_b = to_range(assignment_b);
 
-        if do_assignments_overlap(assignment_a, assignment_b) | do_assignments_overlap(assignment_b, assignment_a) {
+        if do_assignments_overlap(range_a, range_b) | do_assignments_overlap(range_b, range_a) {
             fully_contained_pairs += 1;
         }
-
     }
-
-    return fully_contained_pairs;
-}
-
-fn do_assignments_overlap(assignment_a: &str, assignment_b: &str) -> bool {
-    let range_a = to_range(assignment_a);
-    let range_b = to_range(assignment_b);
-
-    if range_a[0] <= range_b[0] && range_a[1] >= range_b[1] {
-        return true;
-    }
-    false
+    Ok(fully_contained_pairs)
 }
 
 fn to_range(assignment: &str) -> [u32; 2] {
+    let range_str = assignment.split_once("-").unwrap();
+    [range_str.0.parse::<u32>().unwrap(), range_str.1.parse::<u32>().unwrap()]
+}
 
-    let mut range: [u32; 2] = [0, 0];
-    for (i, range_val) in assignment.split("-").enumerate() {
-        println!("{}", range_val);
-        range[i] = range_val.parse::<u32>().unwrap();
-    }
-    range
+fn do_assignments_overlap(range_a: [u32; 2], range_b: [u32; 2]) -> bool {
+    range_a[0] <= range_b[0] && range_a[1] >= range_b[1]
 }
