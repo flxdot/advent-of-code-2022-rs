@@ -22,22 +22,23 @@ fn solve_puzzle(file_path: &str) -> Result<i32, std::io::Error> {
     for line in reader.lines() {
         let line = line?;
 
-        let (assignment_a, assignment_b) = line.split_once(",").unwrap();
-        let range_a = to_range(assignment_a);
-        let range_b = to_range(assignment_b);
+        let assignments = line.split_once(",").unwrap();
+        let range_a = to_range(assignments.0);
+        let range_b = to_range(assignments.1);
 
-        if do_assignments_overlap(range_a, range_b) | do_assignments_overlap(range_b, range_a) {
+        if is_range_contained_in(range_a, range_b) || is_range_contained_in(range_b, range_a) {
             fully_contained_pairs += 1;
         }
     }
+
     Ok(fully_contained_pairs)
 }
 
 fn to_range(assignment: &str) -> [u32; 2] {
     let range_str = assignment.split_once("-").unwrap();
-    [range_str.0.parse::<u32>().unwrap(), range_str.1.parse::<u32>().unwrap()]
+    [range_str.0, range_str.1].map(|v| v.parse::<u32>().unwrap())
 }
 
-fn do_assignments_overlap(range_a: [u32; 2], range_b: [u32; 2]) -> bool {
-    range_a[0] <= range_b[0] && range_a[1] >= range_b[1]
+fn is_range_contained_in(reference: [u32; 2], other: [u32; 2]) -> bool {
+    reference[0] <= other[0] && reference[1] >= other[1]
 }
