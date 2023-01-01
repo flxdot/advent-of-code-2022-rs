@@ -1,2 +1,3 @@
 # advent-of-code-2022-rs
-2022's Advent of Code to get into Rust
+
+Little repo to track my progress on the Advent of Code 2022. It also serves a use case to start learning [Rust](https://www.rust-lang.org/).
